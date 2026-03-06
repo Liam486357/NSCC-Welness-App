@@ -1,8 +1,8 @@
 export const msalConfig = {
     auth: {
-        clientId: "your-client-id-here",
-        authority: "https://login.microsfotonline.com/your-tenant-id-here",
-        redirecftUri: "http://localhost:5173", //This MUST match the URI in Azure
+        clientId: "397d85f9-6314-4b12-8efa-d43430c38876",
+        authority: "https://login.microsfotonline.com/0dc25d87-cd68-49b9-91ae-0ffc56d1eb24",
+        redirectUri: "http://localhost:5173", //This MUST match the URI in Azure
     },
     cache: {
         cacheLocation: "sessionStorage", //or localStorage
@@ -11,5 +11,5 @@ export const msalConfig = {
 };
 
 export const msalRequest ={
-    scopes: []
+    scopes: ["api://e288605f-dee5-446f-8aba-2a968b330a1f/user_access"]
 };
