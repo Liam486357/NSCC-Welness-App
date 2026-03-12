@@ -1,60 +1,214 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import './tracker.css';
+
+const HINTS = {
+    val: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    color: ['var(--danger)', 'var(--danger)', 'var(--danger)', 'var(--terra)', 'var(--terra)', 'var(--terra)', 'var(--sage)', 'var(--sage)', 'var(--amber)', 'var(--amber)', 'var(--moss)'],
+};
+
+const MSGS = [
+    "You're going through something hard. Please reach out to support today.",
+    "Things feel very difficult right now. The support footer below connects you.",
+    "This is a tough day. Be gentle with yourself.",
+    "A challenging stretch — take it one hour at a time.",
+    "Moderate — some areas need a little attention.",
+    "In the middle — some ups, some downs.",
+    "Good — you're in a balanced place today.",
+    "Doing well — keep nurturing what's working.",
+    "Strong — your pillars are in good shape.",
+    "Excellent — this is a really good day.",
+    "You're at your best — savour this and share it."
+];
+
+import { supabase } from '../supabaseClient';
+import { encryptJournal } from '../utils/encryption';
 
 export default function WellnessTracker() {
-    const [mood, setMood] = useState(5);
+    const [sleep, setSleep] = useState(7);
     const [stress, setStress] = useState(5);
-    const [energy, setEnergy] = useState(5);
-    const [sleep, setSleep] = useState(5);
-    const [motivation, setMotivation] = useState(5);
+    const [cog, setCog] = useState(6);
+    const [social, setSocial] = useState(8);
+    const [food, setFood] = useState(5);
     const [journal, setJournal] = useState("");
+    const [composite, setComposite] = useState(6.2);
+    const [submitted, setSubmitted] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSubmit = (e) => {
-        // e.preventDefault();
+    useEffect(() => {
+        // Composite Calculation (Stress is inverted)
+        const score = ((sleep + (10 - stress) + cog + social + food) / 5);
+        setComposite(score);
+    }, [sleep, stress, cog, social, food]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSaving(true);
+
+        let finalJournalContent = journal;
+        if (journal.trim()) {
+            finalJournalContent = await encryptJournal(journal);
+        }
+
         const entry = {
-            mood,
-            stress,
-            energy,
             sleep,
-            motivation,
-            journal,
-            date: new Date().toISOString()
+            stress,
+            cognitive: cog,
+            social,
+            food_security: food,
+            composite: Math.round(composite * 10) / 10,
+            journal: finalJournalContent
         };
 
-        console.log("Wellness Entry: ".entry);
+        // Insert into Supabase
+        const { error } = await supabase
+            .from('checkins')
+            .insert([entry]);
 
-        //later: send to backend
+        if (error) {
+            console.error("Error saving entry:", error);
+            alert("There was an error saving your entry. Please try again.");
+            setIsSaving(false);
+        } else {
+            setSubmitted(true);
+            setIsSaving(false);
+        }
     };
 
-    return ( 
-        <div className="tracker-container"> 
-            <h1>Wellness Tracker</h1> 
-            <p>Track your mood, sleep, stress, and more.</p>
-            <form className="tracker-form" onSubmit={handleSubmit}>
-                <label>Mood: {mood}</label>
-                <input type="range" min="1" max="10" value={mood} onChange={(e) => setMood(e.target.value)}/>
-                
-                <label>Stress: {stress}</label>
-                <input type="range" min="1" max="10" value={stress} onChange={(e) => setStress(e.target.value)}/>
-                
-                <label>Energy: {energy}</label>
-                <input type="range" min="1" max="10" value={energy} onChange={(e) => setEnergy(e.target.value)}/>
-                
-                <label>Sleep Quality: {sleep}</label>
-                <input type="range" min="1" max="10" value={sleep} onChange={(e) => setSleep(e.target.value)}/>
+    const getGradient = (val, colorVar) => `linear-gradient(90deg, ${colorVar} ${val * 10}%, var(--parchment) ${val * 10}%)`;
 
-                <label>Motivation: {motivation}</label>
-                <input type="range" min="1" max="10" value={motivation} onChange={(e) => setMotivation(e.target.value)}/>
-                
-                <label>Journal Entry</label>
-                <textarea
-                placeholder="How are you feeling today?"
-                value={journal}
-                onChange={(e) => setJournal(e.target.value)}
-                />
+    const compRounded = Math.round(composite * 10) / 10;
+    const compIdx = Math.min(10, Math.round(composite));
+    const compColor = HINTS.color[compIdx];
 
-                <button type="submit">Save Entry</button>
+    if (submitted) {
+        return (
+            <div className="success-state" style={{ display: 'flex', animation: 'fadeUp .5s ease both' }}>
+                <div className="success-icon" style={{ fontSize: '56px' }}>🌿</div>
+                <h3 style={{ fontFamily: "'Lora', serif", fontSize: '22px', fontWeight: 600, color: 'var(--sage)' }}>Check-in saved.</h3>
+                <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, maxWidth: '260px', margin: '0 auto 16px' }}>
+                    Thank you for taking that moment for yourself. It matters more than you know.
+                </p>
+                <button className="btn btn-primary" onClick={() => setSubmitted(false)}>
+                    Back to home
+                </button>
+            </div>
+        );
+    }
 
-            </form>
-        </div> 
-    ); 
+    return (
+        <>
+            <div>
+                <h2 className="section-head">How are you today?</h2>
+                <p className="section-sub">Take a moment. Be honest with yourself — this is just for you.</p>
+            </div>
+
+            <div className="card">
+                <form className="pillar-checkin" onSubmit={handleSubmit}>
+
+                    {/* Sleep */}
+                    <div className="p-row">
+                        <div className="p-row-head">
+                            <span className="p-emoji">🌙</span>
+                            <span className="p-name">Sleep Quality</span>
+                            <span className="p-num" style={{ color: 'var(--sage)' }}>{sleep}</span>
+                        </div>
+                        <p className="p-row-hint">How rested do you feel after last night?</p>
+                        <input type="range" className="p-slider" min="0" max="10" value={sleep}
+                            style={{ background: getGradient(sleep, 'var(--sage)'), color: 'var(--sage)' }}
+                            onChange={(e) => setSleep(Number(e.target.value))} />
+                    </div>
+
+                    {/* Stress */}
+                    <div className="p-row">
+                        <div className="p-row-head">
+                            <span className="p-emoji">🌊</span>
+                            <span className="p-name">Perceived Stress</span>
+                            <span className="p-num" style={{ color: 'var(--terra)' }}>{stress}</span>
+                        </div>
+                        <p className="p-row-hint">How pressured or overwhelmed do you feel?</p>
+                        <input type="range" className="p-slider" min="0" max="10" value={stress}
+                            style={{ background: getGradient(stress, 'var(--terra)'), color: 'var(--terra)' }}
+                            onChange={(e) => setStress(Number(e.target.value))} />
+                    </div>
+
+                    {/* Cognitive */}
+                    <div className="p-row">
+                        <div className="p-row-head">
+                            <span className="p-emoji">✨</span>
+                            <span className="p-name">Cognitive Energy</span>
+                            <span className="p-num" style={{ color: 'var(--slate)' }}>{cog}</span>
+                        </div>
+                        <p className="p-row-hint">How sharp and focused does your mind feel?</p>
+                        <input type="range" className="p-slider" min="0" max="10" value={cog}
+                            style={{ background: getGradient(cog, 'var(--slate)'), color: 'var(--slate)' }}
+                            onChange={(e) => setCog(Number(e.target.value))} />
+                    </div>
+
+                    {/* Social */}
+                    <div className="p-row">
+                        <div className="p-row-head">
+                            <span className="p-emoji">🤲</span>
+                            <span className="p-name">Social Belonging</span>
+                            <span className="p-num" style={{ color: 'var(--amber)' }}>{social}</span>
+                        </div>
+                        <p className="p-row-hint">How connected and supported do you feel?</p>
+                        <input type="range" className="p-slider" min="0" max="10" value={social}
+                            style={{ background: getGradient(social, 'var(--amber)'), color: 'var(--amber)' }}
+                            onChange={(e) => setSocial(Number(e.target.value))} />
+                    </div>
+
+                    {/* Food */}
+                    <div className="p-row">
+                        <div className="p-row-head">
+                            <span className="p-emoji">🍃</span>
+                            <span className="p-name">Food Security</span>
+                            <span className="p-num" style={{ color: 'var(--moss)' }}>{food}</span>
+                        </div>
+                        <p className="p-row-hint">How confident are you in accessing nourishing food today?</p>
+                        <input type="range" className="p-slider" min="0" max="10" value={food}
+                            style={{ background: getGradient(food, 'var(--moss)'), color: 'var(--moss)' }}
+                            onChange={(e) => setFood(Number(e.target.value))} />
+                    </div>
+
+                    {/* Live composite */}
+                    <div style={{ marginTop: '22px', paddingTop: '18px', borderTop: '1px solid var(--parchment)' }}>
+                        <div className="composite-bar-wrap">
+                            <div className="composite-bar-head">
+                                <span>Composite Wellness</span>
+                                <span style={{ color: compColor }}>{compRounded.toFixed(1)}</span>
+                            </div>
+                            <div className="composite-track">
+                                <div className="composite-fill" style={{ width: `${composite * 10}%`, background: `linear-gradient(90deg, ${compColor}, ${compColor}aa)` }}></div>
+                            </div>
+                            <p className="composite-msg">{MSGS[compIdx]}</p>
+                        </div>
+                    </div>
+
+                    {/* Hidden submit button to allow enter key submission if needed */}
+                    <button type="submit" style={{ display: 'none' }}></button>
+                </form>
+            </div>
+
+            {/* Journal */}
+            <div className="card">
+                <div className="card-label">A moment to reflect — optional</div>
+                <textarea className="journal-field"
+                    placeholder="What's on your mind today? There's no right answer..."
+                    value={journal}
+                    onChange={(e) => setJournal(e.target.value)}
+                ></textarea>
+                <div className="journal-note">This entry is encrypted. Only you can ever read it.</div>
+            </div>
+
+            {/* CTA */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button className="btn btn-primary btn-full" onClick={handleSubmit} disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save today's check-in \u00A0→"}
+                </button>
+                <button className="btn btn-ghost btn-full btn-sm" disabled={isSaving}>
+                    Maybe later
+                </button>
+            </div>
+        </>
+    );
 }

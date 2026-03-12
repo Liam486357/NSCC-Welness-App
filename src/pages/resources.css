@@ -1,0 +1,109 @@
+.resources-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.res-card {
+    background: var(--warm-white);
+    border-radius: var(--r-md);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(255, 255, 255, .9);
+    position: relative;
+}
+
+.res-card.urgent {
+    background: var(--danger-lt);
+    border-color: rgba(192, 57, 43, .15);
+}
+
+.res-card.urgent h3 {
+    color: var(--danger);
+}
+
+.r-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.r-icon {
+    font-size: 20px;
+}
+
+.r-header h3 {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--bark);
+    margin: 0;
+}
+
+.r-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--danger);
+    padding: 3px 8px;
+    border-radius: 99px;
+    letter-spacing: .5px;
+}
+
+.res-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+.r-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.r-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 18px;
+    border-radius: var(--r-xl);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    border: none;
+    text-decoration: none;
+}
+
+.r-btn.primary {
+    background: var(--sage);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(78, 124, 106, .2);
+}
+
+.res-card.urgent .r-btn.primary {
+    background: var(--danger);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(192, 57, 43, .25);
+}
+
+.r-btn.outline {
+    background: transparent;
+    color: var(--bark);
+    border: 1.5px solid var(--soft);
+}
+
+.r-btn.primary:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.r-btn.outline:hover {
+    background: var(--parchment);
+}
