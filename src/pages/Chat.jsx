@@ -77,7 +77,8 @@ export default function Chat() {
 
         } catch (error) {
             console.error("Chat Error:", error);
-            setMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting right now. Let's talk a little later." }]);
+            const errorMsg = error.message || "I'm having trouble connecting right now.";
+            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }]);
         } finally {
             setIsTyping(false);
         }
