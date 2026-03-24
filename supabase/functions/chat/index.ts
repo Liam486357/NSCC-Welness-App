@@ -47,7 +47,7 @@ If the student expresses thoughts of self-harm, severe distress, or crisis, you 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                system_instruction: { parts: { text: systemInstruction } },
+                systemInstruction: { parts: { text: systemInstruction } },
                 contents: geminiHistory,
                 generationConfig: { temperature: 0.7, maxOutputTokens: 350 }
             }),
