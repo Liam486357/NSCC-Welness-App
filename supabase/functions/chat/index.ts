@@ -43,11 +43,11 @@ If the student expresses thoughts of self-harm, severe distress, or crisis, you 
             parts: [{ text: msg.content }]
         }));
 
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                systemInstruction: { parts: { text: systemInstruction } },
+                system_instruction: { parts: { text: systemInstruction } },
                 contents: geminiHistory,
                 generationConfig: { temperature: 0.7, maxOutputTokens: 350 }
             }),
